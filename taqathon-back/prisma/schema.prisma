@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+    // output   = "../generated/prisma/client"
+}
+generator prismaClassGenerator {
+    provider = "prisma-class-generator"
+    output   = "/src/_gen/prisma-class"
+
+}
+
+datasource db {
+  // provider = "postgresql"
+  provider = "sqlite"
+  // url      = env("DATABASE_URL")
+  url      = env("DB_URLSQLITE")
+}
+
+model User {
+  id      Int      @id @default(autoincrement())
+  email   String   @unique
+  firstName    String
+  lastName    String
+  userName String @unique
+  passWord String?
+}
+
+enum MTYPE {
+  MINOR
+  MAJOR
+  SEVENDAYS
+  FORCED
+
+}
+
+model MaintenanceWindows {
+  id            Int       @id @default(autoincrement())
+  title         String
+  scheduleStart DateTime
+  scheduleEnd   DateTime
+  status        Status @default(SCHEDULED)
+  type MTYPE @default(MINOR)
+  anomalies     Anomaly[]  // <-- This creates the one-to-many relation
+}
+
+enum Status {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// enum ShutDownType {
+
+// }
+
+
+model comments {
+ id Int @id @default(autoincrement())
+ content String
+ author String
+ createdAt DateTime @default(now())
+ anomalyId Int
+ anomaly Anomaly @relation(references: [id], fields: [anomalyId])
+}
+
+model changeHistory {
+ id Int @id @default(autoincrement())
+ field String
+ oldvalue String
+ newValue String
+ changedBy String
+ changedAt DateTime @default(now())
+ reason String
+  anomalyId Int
+ anomaly Anomaly @relation(references: [id], fields: [anomalyId])
+}
+
+model attachments {
+ id Int @id @default(autoincrement())
+ name String
+ anomalyId Int
+ anomaly Anomaly @relation(references: [id], fields: [anomalyId])
+}
+
+enum AStatus {
+  IN_PROGRESS
+  TREATED
+  CLOSED
+}
+
+model Anomaly {
+  id                  Int    @id @default(autoincrement())
+  // title               String @default("not null")
+  description         String
+  equipementDescription         String
+  equipment           String
+  detectionDate       DateTime
+  responsiblePerson   String?
+  status              AStatus @default(IN_PROGRESS)
+  system                String
+  service             String
+  //
+  estimatedTime       Int?
+  
+  disponibility       Int?
+  integrity           Float?
+  processSafety       Int?
+  predictedDisponibility       Float?
+  predictedIntegrity           Float?
+  predictedProcessSafety       Int?
+  criticality         Float?
+  predictionsData Json?
+  rexFilePath String?
+
+  sysShutDownRequired Boolean @default(false)
+  forcedAssigned      Boolean @default(false)
+  
+  userFeedBack Boolean @default(false)
+
+  feedBack Json?
+  actionPlan Json?
+  //
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  treatedAt           DateTime?
+  closedAt            DateTime?
+
+  maintenanceWindowId Int?
+  maintenanceWindow MaintenanceWindows? @relation(fields: [maintenanceWindowId], references: [id])
+  attachements attachments[]
+  comments comments[]
+  changeHistory changeHistory[]
+}

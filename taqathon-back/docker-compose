@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: your_username
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_database
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  # backend:
+  #   image: 
+
+  # redis:
+  #   image: redis:latest
+  #   restart: always
+  #   ports:
+  #     - '6379:6379'
+
+volumes:
+  postgres_data:

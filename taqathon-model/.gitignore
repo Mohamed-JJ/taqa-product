@@ -1,0 +1,12 @@
+# created by virtualenv automatically
+bin/
+CACHEDIR.TAG
+etc/
+lib/
+include/
+pyvenv.cfg/
+.ipynb_checkpoints/
+share/
+pyvenv.cfg
+*.h5
+*.pkl

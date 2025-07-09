@@ -1,0 +1,84 @@
+services:
+  react:
+    build: 
+      context: ./taqathon-front
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./taqathon-front/.env
+    volumes:
+      - ./taqathon-front:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    depends_on:
+      - nest
+      - fastapi
+
+  nest:
+    build:
+      context: ./taqathon-back
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"
+    env_file:
+      - ./taqathon-back/.env
+    volumes:
+      - ./taqathon-back:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  fastapi:
+    build:
+      context: ./taqathon-model-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    # env_file:
+    #   - ./taqathon-model-service/.env
+    volumes:
+      - ./taqathon-model-service:/app
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - DB_USERNAME=your_username
+      - DB_PASSWORD=your_password
+      - DB_DATABASE=string
+      - DATABASE_URL=postgresql://your_username:your_password@postgres:5432/your_database
+      - POSTGRES_USER=your_username
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=your_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules_react:
+  node_modules_nest:
+  postgres_data:
